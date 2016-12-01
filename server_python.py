@@ -31,14 +31,14 @@ class SomeServerProtocol(WebSocketServerProtocol):
         print("something opened")
 
 class MainServer:
-  def __init__(self):
-    self.latest_coords = latest_coords
   def runReactor(self):
     log.startLogging(sys.stdout)
 
     # static file server seving index.html as root
+    # Everything in /client will be served normally
     root = File("./client")
 
+    # Set up a websocket server
     factory = WebSocketServerFactory(u"ws://127.0.0.1:9999")
     factory.protocol = SomeServerProtocol
     resource = WebSocketResource(factory)
@@ -46,8 +46,8 @@ class MainServer:
     root.putChild(b"ws", resource)
 
     site = Site(root)
+    # Listen for TCP requests on port 9999
     reactor.listenTCP(9999, site)
-    #reactor.listenTCP(9999, factory)
     l = Light()
     LoopingCall(l.loop, latest_coords).start(0)
     reactor.run()

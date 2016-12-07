@@ -9,6 +9,7 @@ GPIO.setmode(GPIO.BCM)
 
 GPIO.setup(GREEN_LED, GPIO.OUT)
 
+
 class Light:
     # This will be called over and over
     # It must be in this method

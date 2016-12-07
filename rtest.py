@@ -16,15 +16,15 @@ MOTOR1 = 0
 MOTOR2 = 1
 SOLENOID = 13
 
+
 class MyRobot(wpilib.IterativeRobot):
-    
     def robotInit(self):
         """
         This function is called upon program startup and
         should be used for any initialization code.
         """
         traceback.print_stack()
-        
+
         m1 = wpilib.TalonSRX(MOTOR1)
         m2 = wpilib.TalonSRX(MOTOR2)
         self.robot_drive = wpilib.RobotDrive(m1, m2)
@@ -34,20 +34,20 @@ class MyRobot(wpilib.IterativeRobot):
         #self.button1 = wpilib.buttons.JoystickButton(self.stick, 0)
         self.s1 = wpilib.DigitalOutput(SOLENOID)
         self.CannonIsFiring = False
-    
+
     def autonomousInit(self):
         """This function is run once each time the robot enters autonomous mode."""
         self.auto_loop_counter = 0
 
     def autonomousPeriodic(self):
         """This function is called periodically during autonomous."""
-        
+
         # Check if we've completed 100 loops (approximately 2 seconds)
         if self.auto_loop_counter < 100:
-            self.robot_drive.drive(.1, 0) # Drive forwards
+            self.robot_drive.drive(.1, 0)  # Drive forwards
             self.auto_loop_counter += 1
         else:
-            self.robot_drive.drive(0, 0)    #Stop robot
+            self.robot_drive.drive(0, 0)  #Stop robot
 
     def teleopPeriodic(self):
         """This function is called periodically during operator control."""
@@ -62,7 +62,7 @@ class MyRobot(wpilib.IterativeRobot):
                 # button is no longer pressed, so turn off the solenoid
                 self.s1.set(False)
             self.CannonIsFiring = False
-        
+
         #print('test if safety functions kill an unresponsive robot')
         #time.sleep(10)
         self.robot_drive.arcadeDrive(self.stick)
@@ -70,6 +70,7 @@ class MyRobot(wpilib.IterativeRobot):
     def testPeriodic(self):
         """This function is called periodically during test mode."""
         wpilib.LiveWindow.run()
+
 
 if __name__ == "__main__":
     print('rtest.py starting')

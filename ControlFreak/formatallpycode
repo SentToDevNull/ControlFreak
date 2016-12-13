@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Praneeth, I made this just for you... It's so that we have consistent
+#   formatting.
+
+set -e
+
+CURRENTDIR=`pwd`
+
+command -v yapf >/dev/null 2>&1 ||                                       \
+(echo -e "This program requires \"yapf\", but it's not installed. It"    \
+"will be fetched \nand installed for you. You will be prompted for the"  \
+"root password." && echo "" && mkdir ~/.yapfinst/ && cd ~/.yapfinst/ &&  \
+git clone https://github.com/google/yapf.git &&                          \
+cd yapf && sudo python setup.py install && cd $CURRENTDIR)
+
+yapf -r -i *.py

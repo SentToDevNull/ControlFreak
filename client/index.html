@@ -3,20 +3,36 @@
 <head>
 <title>T-Shirt Bot!</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<!-- <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>-->
-<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script src="jquery-1.10.2.js"></script>
 <style type="text/css">
 html, body {
     height: 100%;
     margin: 0px;
     padding: 0px;
 }
-#container {
+#buttons {
+    background-color: cyan;
+    width: 50%;
+    text-align: center;
+}
+#buttons button {
+    padding: 70px;
+    font-size: 50px;
+    border-radius: 60px;
+}
+#buttons button:active, #buttons button.active {
+    background-color: red;
+    outline: none;
+}
+table {
+    width: 100%;
     height: 100%;
+}
+.container {
     background-color: lightgrey;
     position: relative;
 }
-#circle {
+.circle {
     position: absolute;
     border-radius: 50px;
     width: 100px;
@@ -31,60 +47,104 @@ html, body {
 </style>
 </head>
 <body>
-<div id="container">
-    <div id="circle" draggable>
+<table>
+<td class="container" data-side="0">
+    <div class="circle">
     </div>
-</div>
+</td>
+<td id="buttons">
+    <button id="fire">Fire!</button>
+</td>
+<td class="container" data-side="1">
+    <div class="circle">
+    </div>
+</td>
+</table>
 <script type="text/javascript">
 var currX = 0.5, currY = 0.5;
 var smoothness = 0.1;
 var interrupt = false;
-var width = $(window).width();
-var socket = new WebSocket(window.location.href.replace("http", "ws")+"ws");
-socket.addEventListener('error', function (m) { console.log("error"); });
-socket.addEventListener('open', function (m) { console.log("websocket connection open"); });
-socket.addEventListener('message', function (m) { console.log(m.data); });
-var height = $(window).height();
+var socket = new WebSocket(window.location.href.replace("http", "ws")+"ws");//{send:console.log};
+var width = $(".container").width();
+var height = $(".container").height();
 var moveCircle = function(evt) {
-    var x = typeof evt.pageX === "number" ? evt.pageX : evt.originalEvent.touches[0].pageX;
-    var y = typeof evt.pageY === "number" ? evt.pageY : evt.originalEvent.touches[0].pageY;
+    var offset = $(this).offset();
+    var x = typeof evt.offsetX === "number" ? evt.pageX : evt.originalEvent.touches[0].pageX;
+    var y = typeof evt.offsetY === "number" ? evt.pageY : evt.originalEvent.touches[0].pageY;
+    x -= offset.left
+    y -= offset.top;
     x /= width;
     y /= height;
-    socket.send("coords: "+ x+" "+y);
-    updateTo(x, y);
+    socket.send(JSON.stringify({type: "coords", side: $(this).data("side"), value: y}));
+    updateTo($(this).find(".circle"), x, y);
     return false;
 };
-var updateTo = function(x, y) {
+var updateTo = function(circle, x, y) {
     currX += (x - currX) * smoothness;
     currY += (y - currY) * smoothness;
-    $("#circle").css("top", ~~(currY*height)).css("left", ~~(currX*width));
-}
-var recenterCircle = function() {
+    circle.css("top", ~~(currY*height)).css("left", ~~(currX*width));
+};
+var recenterCircle = function(container) {
     interrupt = false;
-    socket.send("coords: 0.5 0.5")
     requestAnimationFrame(function fn() {
-        updateTo(0.5, 0.5);
+        updateTo($(container).find(".circle"), 0.5, 0.5);
         if (!interrupt) {
             requestAnimationFrame(fn);
         }
     });
-}
-$("#container").on("mousedown touchstart", function() { interrupt = true; });
-$("#container").on("touchmove", moveCircle);
-$("#container").on("mousedown", function() {
+};
+(function test() {
+    var element = {};
+    $(document).on('touchstart', function(e) {
+        var event = e.originalEvent;
+        for (var i = 0; i < event.touches.length; ++i) {
+            var touch = event.touches[i];
+            var elem = document.elementFromPoint(touch.pageX,touch.pageY);
+            if ($(elem).hasClass("circle"))
+                element[touch.identifier] = $(elem).parent()[0];
+            else if ($(elem).hasClass("container"))
+                element[touch.identifier] = elem;
+        }
+        return false;
+    });
+
+    $(".container").on('touchmove', function(e) {
+        var event = e.originalEvent;
+        var circle = $(this).find(".circle");
+        circle.hide();
+        for (var i = 0; i < event.touches.length; ++i) {
+            var touch = event.touches[i]
+            if (element[touch.identifier] !== document.elementFromPoint(touch.pageX,touch.pageY)) $(this).trigger("jq-touchleave");
+        }
+        circle.show();
+        return false;
+    });
+})();
+$(".container").on("mousedown touchstart", function() { interrupt = true; });
+$(".container").on("touchmove", moveCircle);
+$(".container").on("mousedown", function() {
     $(this).on("mousemove", moveCircle);
 });
-$("#container").on("mouseup", function() {
+$(".container").on("mouseup mouseleave", function() {
     $(this).off("mousemove", moveCircle);
 });
-$("#container").on("mouseup touchend", recenterCircle);
+$(".container").on("mouseup touchend mouseleave jq-touchleave", function() { recenterCircle(this); });
 $(window).on("resize", function() {
-    width = $(window).width();
-    height = $(window).height();
+    width = $(".container").width();
+    height = $(".container").height();
     _smoothness = smoothness;
     smoothness = 1;
-    recenterCircle();
+    $(".container").each(function(_, container) { recenterCircle(container); });
+    socket.send("coords: 0.5 0.5")
     smoothness = _smoothness;
+});
+$("#fire").on("click touchend", function() {
+    socket.send(JSON.stringify({type: "fire"}));
+});
+$("button").on("touchstart", function() {
+    $(this).addClass("active");
+}).on("touchend", function() {
+    $(this).removeClass("active");
 });
 </script>
 </body>

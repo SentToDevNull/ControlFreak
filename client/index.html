@@ -135,7 +135,8 @@ $(window).on("resize", function() {
     _smoothness = smoothness;
     smoothness = 1;
     $(".container").each(function(_, container) { recenterCircle(container); });
-    socket.send("coords: 0.5 0.5")
+    socket.send(JSON.stringify({type: "coords", side: 0, value: 0.5}));
+    socket.send(JSON.stringify({type: "coords", side: 1, value: 0.5}));
     smoothness = _smoothness;
 });
 $("#fire").on("click touchend", function() {

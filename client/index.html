@@ -69,8 +69,8 @@ var width = $(".container").width();
 var height = $(".container").height();
 var moveCircle = function(evt) {
     var offset = $(this).offset();
-    var x = typeof evt.offsetX === "number" ? evt.pageX : evt.originalEvent.touches[0].pageX;
-    var y = typeof evt.offsetY === "number" ? evt.pageY : evt.originalEvent.touches[0].pageY;
+    var x = typeof evt.pageX === "number" ? evt.pageX : evt.originalEvent.touches[0].pageX;
+    var y = typeof evt.pageY === "number" ? evt.pageY : evt.originalEvent.touches[0].pageY;
     x -= offset.left
     y -= offset.top;
     x /= width;
